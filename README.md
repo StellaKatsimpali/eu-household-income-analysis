@@ -1,58 +1,36 @@
 # What Drives Household Income in the EU? A Data-Driven Econometric Comparison (Spain vs. Sweden)
 
-### 📊 Executive Summary
-This project explores the socioeconomic determinants of household income in two distinct European economies: Spain and Sweden. Using survey data from the European Social Survey (ESS), I built and evaluated Multiple Linear Regression (OLS) models to quantify the impact of education, gender, age, and marital status on income levels. To ensure the reliability of the insights, rigorous econometric diagnostics were performed, and heteroskedasticity was corrected using Robust Standard Errors (HC1). 
+### 📌 Project Overview
+This project explores the socioeconomic determinants of household income in two distinct European economies: **Spain** (Mediterranean welfare model) and **Sweden** (Nordic welfare model). 
 
-**Key Insight:** While education positively impacts income in both countries, the gender wage gap and the life-cycle income effect (age) present notable differences in magnitude between the Southern and Nordic economic models.
+Using micro-data from the **European Social Survey (ESS)**, the analysis employs Multiple Linear Regression (OLS) to identify how education, gender, age, marital status, and income sources affect a household's placement on the 1-10 income decile scale (`hinctnta`).
 
----
+### 🛠️ Data & Preprocessing
+* **Source:** European Social Survey (ESS).
+* **Data Cleaning:** Filtered for ES and SE. Handled missing values (NAs) across all variables (e.g., removing refusal to answer or "don't know" codes).
+* **Transformations:** Converted categorical variables into factors and created a non-linear age variable (`Age_Squared`) to test for life-cycle income effects.
 
-### 🎯 Objectives
-* To identify and quantify the primary factors influencing household income in Spain and Sweden.
-* To perform a robust comparative econometric analysis between a Mediterranean and a Nordic welfare state.
-* To translate complex statistical outputs into actionable, visual insights.
+### 📊 Econometric Methodology & Diagnostics
+To ensure the statistical validity of the findings, a rigorous econometric pipeline was followed:
 
----
+1. **Model Specification & Multicollinearity:** The initial full model (including hundreds of `isco08` occupation codes) exhibited perfect multicollinearity (singularities). A **Reduced Model** was successfully specified. Variance Inflation Factor (VIF) tests confirmed that all remaining variables had a VIF < 2, perfectly resolving the issue (structural multicollinearity for Age/Age_Squared was naturally retained).
+2. **Heteroskedasticity Correction:** The Breusch-Pagan test detected heteroskedasticity in the Spanish model (p-value = 0.002). To correct this, **Robust Standard Errors (HC1)** were calculated using the `sandwich` package for both countries, ensuring reliable p-values.
+3. **Normality of Residuals:** The Jarque-Bera test confirmed that the residuals are normally distributed (Spain: p = 0.097, Sweden: p = 0.631).
+4. **Autocorrelation:** The Durbin-Watson test confirmed the absence of autocorrelation, with values perfectly centered around 2.0 (Spain: 2.04, Sweden: 2.07).
+5. **Model Specification:** The Ramsey RESET test confirmed that the models are correctly specified with no omitted non-linear variables (Spain: p = 0.768, Sweden: p = 0.132).
 
-### 💾 Data & Preprocessing
-* **Data Source:** European Social Survey (ESS 11).
-* **Target Variable:** Household Income Index (`hinctnta`).
-* **Data Cleaning (Tidyverse):** * Filtered data strictly for Spain (ES) and Sweden (SE).
-  * Handled missing values (NAs) encoded as specific numbers in the raw dataset.
-  * Transformed categorical variables into factors for proper regression modeling.
-  * Engineered a new feature, `Age_Squared`, to capture the non-linear, life-cycle effect of age on income.
+### 💡 Key Findings
 
----
+Through the robust OLS models, several critical insights emerged regarding how income is distributed in these two countries:
 
-### 🔬 Methodology & Econometric Diagnostics
-The core analysis relies on **Multiple Linear Regression (OLS)**. To ensure the statistical validity of the models, several diagnostic tests were conducted using `lmtest`, `car`, and `tseries`:
+* **1. The Universal Education Premium:** Higher education is the strongest driver of income in both nations. Holding all else constant, completing a Bachelor's, Master's, or PhD (`edulvlb` 620, 720, 800) boosts a household's income decile by +2.3 to +3.7 points compared to the baseline.
+* **2. The Gender Wage Gap Persists:** Even after controlling for education, age, and location, identifying as female (`gndr2`) has a statistically significant negative impact on the household income decile in **both** Spain (-0.525) and Sweden (-0.473).
+* **3. The Life-Cycle Effect (Age):** A fascinating divergence appears here. In **Spain**, age exhibits a classic, statistically significant non-linear effect (an inverted-U shape where income rises and then falls towards retirement). In **Sweden**, age and age-squared are strictly insignificant (p > 0.44). This suggests the Nordic welfare system (e.g., strong student subsidies and robust pensions) effectively neutralizes age-based income disparities.
+* **4. Main Source of Income:** In Sweden, the main source of income (`hincsrca`) acts as a massive determinant. Relying on unemployment benefits or pensions (compared to wages) drastically lowers the predicted income decile (e.g., coefficients reaching -3.7 to -4.6). 
 
-1. **Multicollinearity:** Evaluated using Variance Inflation Factor (VIF). Variables like occupation (`isco08`) and economic sector (`nacer2`) were removed from the initial full model to eliminate multicollinearity.
-2. **Heteroskedasticity:** Detected using the Breusch-Pagan test. Consequently, **Robust Standard Errors (HC1)** via the `sandwich` package were applied to correct the standard errors and calculate reliable p-values.
-3. **Normality of Residuals:** Assessed via the Jarque-Bera test.
-4. **Autocorrelation:** Checked using the Durbin-Watson test.
-5. **Model Specification:** Validated using the Ramsey RESET test.
+### 📈 Model Fit
+The final models provide a realistic and solid explanatory power for cross-sectional micro-data:
+* **Sweden:** Explains **38.5%** of the variance in household income (Adjusted R-squared: 0.3847).
+* **Spain:** Explains **22.6%** of the variance in household income (Adjusted R-squared: 0.2264). 
 
----
-
-### 📈 Key Findings & Visualizations
-
-#### 1. The Education Premium
-Education is a strong predictor of higher income in both nations, but the baseline impact scales differently.
-
-
-#### 2. The Gender Gap and Marital Status
-Holding all other variables constant (age, education, etc.), being female has a statistically significant negative impact on the household income index compared to the male reference group in both countries (-0.525 in Spain, -0.473 in Sweden). 
-
-
-#### 3. The Life-Cycle Effect (Age)
-By introducing the `Age_Squared` variable, the model successfully captures the quadratic relationship between age and income. Income tends to rise as individuals gain experience, peaks during late middle age, and declines post-retirement.
-
-
----
-
-### 🛠️ Tech Stack
-* **Language:** R
-* **Data Manipulation:** `dplyr`, `tidyverse`, `readxl`
-* **Econometric Modeling:** `stats` (lm), `lmtest`, `sandwich` (Robust SEs), `car` (VIF), `tseries`
-* **Data Visualization:** `ggplot2`, `stargazer`
+*(The full R script, including all diagnostic tests and robust standard error calculations, is available in the repository files).*
